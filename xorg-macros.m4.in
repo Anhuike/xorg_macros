@@ -426,13 +426,24 @@ m4_ifval([$1],
 fi])
 
 # Test for the ability of xmlto to generate a text target
+#
+# NOTE: xmlto 0.0.27 or higher return a non-zero return code in the
+# following test for empty XML docbook files.
+# For compatibility reasons use the following empty XML docbook file and if
+# it fails try it again with a non-empty XML file.
 have_xmlto_text=no
 cat > conftest.xml << "EOF"
 EOF
 AS_IF([test "$have_xmlto" = yes],
       [AS_IF([$XMLTO --skip-validation txt conftest.xml >/dev/null 2>&1],
              [have_xmlto_text=yes],
-             [AC_MSG_WARN([xmlto cannot generate text format, this format skipped])])])
+             [# Try it again with a non-empty XML file.
+              cat > conftest.xml << "EOF"
+<x></x>
+EOF
+              AS_IF([$XMLTO --skip-validation txt conftest.xml >/dev/null 2>&1],
+                    [have_xmlto_text=yes],
+                    [AC_MSG_WARN([xmlto cannot generate text format, this format skipped])])])])
 rm -f conftest.xml
 AM_CONDITIONAL([HAVE_XMLTO_TEXT], [test $have_xmlto_text = yes])
 AM_CONDITIONAL([HAVE_XMLTO], [test "$have_xmlto" = yes])
